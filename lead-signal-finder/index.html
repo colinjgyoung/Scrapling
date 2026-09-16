@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Barcelona Communication Signal Finder</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="eyebrow">TARGETED DISCOVERY + HUMAN ENGAGEMENT</p>
+      <h1>Communication Signal Finder</h1>
+      <p class="hero__copy">Find public conversations worth joining, qualify the signal, then decide personally whether to comment, follow or connect.</p>
+      <p class="safety-note">This tool never logs in to, scrapes or acts on LinkedIn. Search links open in your browser and every engagement action remains yours.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="discovery-title">
+      <div class="section-heading">
+        <span class="step">1</span>
+        <div>
+          <h2 id="discovery-title">Discover relevant conversations</h2>
+          <p>Choose a market, pain area and language. Open only the searches you want to review.</p>
+        </div>
+      </div>
+
+      <div class="form-grid form-grid--four">
+        <label>
+          Target audience
+          <select id="audience">
+            <option value="direct">Direct corporate decision makers</option>
+            <option value="learning">L&amp;D and People teams</option>
+            <option value="operations">Operations and team leaders</option>
+            <option value="partners">Training partners and LPOs</option>
+          </select>
+        </label>
+        <label>
+          Pain area
+          <select id="topic">
+            <option value="all">All six areas</option>
+            <option value="presentations">Presentations and executive communication</option>
+            <option value="international">International team communication</option>
+            <option value="conversations">Difficult conversations and feedback</option>
+            <option value="meetings">Meetings and facilitation</option>
+            <option value="influence">Stakeholders, influencing and change</option>
+            <option value="learning">Communication development need</option>
+          </select>
+        </label>
+        <label>
+          Search language
+          <select id="language">
+            <option value="both">English + Spanish</option>
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="ca">Catalan</option>
+          </select>
+        </label>
+        <label>
+          Location
+          <input id="search-location" type="text" value="Barcelona" autocomplete="address-level2">
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="generate-searches" class="button button--primary" type="button">Generate targeted searches</button>
+        <span class="muted">Tip: in LinkedIn, select Posts and Latest if those filters are not preserved.</span>
+      </div>
+      <div id="search-results" class="search-results" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="qualification-title">
+      <div class="section-heading">
+        <span class="step">2</span>
+        <div>
+          <h2 id="qualification-title">Qualify a candidate post</h2>
+          <p>Paste only what you need. The scoring is transparent and runs entirely in this browser.</p>
+        </div>
+      </div>
+
+      <form id="candidate-form">
+        <div class="form-grid form-grid--two">
+          <label>
+            Post URL
+            <input id="post-url" type="url" placeholder="https://www.linkedin.com/posts/...">
+          </label>
+          <label>
+            Author
+            <input id="author" type="text" placeholder="Name">
+          </label>
+          <label>
+            Role and company
+            <input id="role-company" type="text" placeholder="Head of L&amp;D, Company">
+          </label>
+          <label>
+            Location
+            <input id="candidate-location" type="text" value="Barcelona">
+          </label>
+          <label>
+            Published date
+            <input id="published-date" type="date">
+          </label>
+        </div>
+        <label>
+          Post text
+          <textarea id="post-text" rows="9" required placeholder="Paste the post text here. Look for a real problem, change, request or constraint, not just a topic match."></textarea>
+        </label>
+        <div class="actions">
+          <button class="button button--primary" type="submit">Qualify signal</button>
+          <button id="clear-candidate" class="button button--quiet" type="button">Clear</button>
+        </div>
+      </form>
+
+      <div id="analysis-result" class="analysis-result" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="shortlist-title">
+      <div class="section-heading">
+        <span class="step">3</span>
+        <div>
+          <h2 id="shortlist-title">Review your shortlist</h2>
+          <p>Strong signals rise to the top. Open the original post before deciding what to do.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="export-csv" class="button button--secondary" type="button">Export CSV</button>
+        <button id="clear-shortlist" class="button button--quiet" type="button">Clear shortlist</button>
+        <span id="shortlist-count" class="muted"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Score</th>
+              <th>Signal</th>
+              <th>Author</th>
+              <th>Area</th>
+              <th>Recommended action</th>
+              <th>Controls</th>
+            </tr>
+          </thead>
+          <tbody id="shortlist-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Built for Colin Young's Barcelona business-development workflow. No automatic outreach. No background monitoring.</p>
+  </footer>
+
+  <script src="scoring.js"></script>
+  <script src="core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
