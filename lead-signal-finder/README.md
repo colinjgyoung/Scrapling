@@ -65,6 +65,7 @@ With Node.js installed, run:
 
 ```bash
 node lead-signal-finder/tests/scoring.test.js
+node lead-signal-finder/tests/core.test.js
 ```
 
 The optional browser smoke test uses Playwright:
