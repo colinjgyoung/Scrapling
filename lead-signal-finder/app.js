@@ -5,52 +5,6 @@
   const today = new Date().toISOString().slice(0, 10);
   const $ = id => document.getElementById(id);
 
-  const discoveryPacks = {
-    presentations: {
-      label: "Presentations and executive communication",
-      en: ["presenting in English executive audience", "presentation challenge leadership team"],
-      es: ["presentar en inglés equipo directivo", "reto presentación comunicación ejecutiva"],
-      ca: ["presentar en anglès equip directiu", "repte presentació comunicació executiva"]
-    },
-    international: {
-      label: "International team communication",
-      en: ["international team communication challenge", "global team language barrier"],
-      es: ["equipos internacionales reto comunicación", "equipo global barrera idioma"],
-      ca: ["equips internacionals repte comunicació", "equip global barrera idioma"]
-    },
-    conversations: {
-      label: "Difficult conversations and feedback",
-      en: ["difficult conversations managers feedback challenge", "psychological safety honest feedback team"],
-      es: ["conversaciones difíciles managers feedback reto", "seguridad psicológica feedback equipo"],
-      ca: ["converses difícils managers feedback repte", "seguretat psicològica feedback equip"]
-    },
-    meetings: {
-      label: "Meetings and facilitation",
-      en: ["meetings low participation facilitation challenge", "international meetings people not speaking"],
-      es: ["reuniones poca participación reto facilitación", "reuniones internacionales equipo no participa"],
-      ca: ["reunions poca participació repte facilitació", "reunions internacionals equip no participa"]
-    },
-    influence: {
-      label: "Stakeholders, influencing and change",
-      en: ["stakeholder communication buy-in challenge", "influence without authority international team"],
-      es: ["comunicación stakeholders conseguir apoyo reto", "influir sin autoridad equipo internacional"],
-      ca: ["comunicació stakeholders aconseguir suport repte", "influir sense autoritat equip internacional"]
-    },
-    learning: {
-      label: "Communication development need",
-      en: ["looking for communication training partner", "leadership communication workshop provider"],
-      es: ["buscamos proveedor formación comunicación", "taller comunicación liderazgo empresa"],
-      ca: ["busquem proveïdor formació comunicació", "taller comunicació lideratge empresa"]
-    }
-  };
-
-  const audienceTerms = {
-    direct: { en: "HR director founder manager", es: "dirección personas fundador manager", ca: "direcció persones fundador manager" },
-    learning: { en: "learning development talent", es: "formación desarrollo talento", ca: "formació desenvolupament talent" },
-    operations: { en: "operations team lead manager", es: "operaciones responsable equipo", ca: "operacions responsable equip" },
-    partners: { en: "training provider consultancy FUNDAE", es: "proveedor formación consultoría FUNDAE", ca: "proveïdor formació consultoria FUNDAE" }
-  };
-
   let latestCandidate = null;
   let shortlist = loadShortlist();
 
@@ -58,28 +12,13 @@
     return String(value || "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
   }
 
-  function safeUrl(value) {
-    try {
-      const parsed = new URL(String(value || ""));
-      return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
-    } catch {
-      return "";
-    }
-  }
-
   function loadShortlist() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
+    return SignalAppCore.loadStoredList(localStorage, STORAGE_KEY);
   }
 
   function saveShortlist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(shortlist));
+    SignalAppCore.persistList(localStorage, STORAGE_KEY, shortlist);
     renderShortlist();
-  }
-
-  function languagesFor(value) {
-    if (value === "both") return ["en", "es"];
-    return [value];
   }
 
   function generateSearches() {
@@ -87,19 +26,7 @@
     const topic = $("topic").value;
     const language = $("language").value;
     const location = $("search-location").value.trim() || "Barcelona";
-    const packKeys = topic === "all" ? Object.keys(discoveryPacks) : [topic];
-    const rows = [];
-
-    packKeys.forEach(key => {
-      const pack = discoveryPacks[key];
-      languagesFor(language).forEach(lang => {
-        const phrase = pack[lang][0];
-        const query = `${location} ${phrase} ${audienceTerms[audience][lang]}`.trim();
-        const linkedIn = `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(query)}`;
-        const google = `https://www.google.com/search?q=${encodeURIComponent(`site:linkedin.com/posts ${query}`)}`;
-        rows.push({ label: pack.label, lang: lang.toUpperCase(), query, linkedIn, google });
-      });
-    });
+    const rows = SignalAppCore.buildSearches({ audience, topic, language, location });
 
     $("search-results").innerHTML = rows.map(row => `
       <article class="search-card">
@@ -128,7 +55,7 @@
 
   function renderAnalysis(candidate, result) {
     const badgeClass = `score--${result.level}`;
-    const originalUrl = safeUrl(candidate.url);
+    const originalUrl = SignalAppCore.safeUrl(candidate.url);
     const evidence = result.evidence.map(item => `<li>${escapeHtml(item)}</li>`).join("");
     const b = result.breakdown;
     $("analysis-result").innerHTML = `
@@ -215,7 +142,7 @@
       return;
     }
     $("shortlist-body").innerHTML = sorted.map(item => {
-      const originalUrl = safeUrl(item.url);
+      const originalUrl = SignalAppCore.safeUrl(item.url);
       return `
         <tr>
           <td><strong>${item.result.score}</strong></td>
@@ -240,19 +167,9 @@
     }));
   }
 
-  function csvCell(value) {
-    const text = String(value == null ? "" : value);
-    return `"${text.replace(/"/g, '""')}"`;
-  }
-
   function exportCsv() {
     if (!shortlist.length) return;
-    const header = ["score", "signal", "author", "role_company", "location", "published_date", "pain_area", "recommended_action", "engagement_angle", "url", "post_text"];
-    const rows = shortlist.sort((a, b) => b.result.score - a.result.score).map(item => [
-      item.result.score, item.result.label, item.author, item.roleCompany, item.location, item.publishedDate,
-      item.result.areaLabel, item.result.action, item.result.angle, item.url, item.text
-    ]);
-    const csv = [header, ...rows].map(row => row.map(csvCell).join(",")).join("\n");
+    const csv = SignalAppCore.shortlistToCsv(shortlist);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
